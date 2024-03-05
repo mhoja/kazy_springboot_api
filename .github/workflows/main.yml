@@ -1,0 +1,146 @@
+name: Spring Boot API Deployment
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  deploy_production:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11' # or any version suitable for your Spring Boot application
+
+      - name: Build Spring Boot application
+        run: ./mvnw clean package -DskipTests=true
+
+      - name: Build Docker image and set Docker tag with TAG
+        run: |
+          echo "Generated Docker tag: ${{ github.sha }}"
+          docker build -t "${{ secrets.REPOSITORY_NAME }}" .
+          docker tag "${{ secrets.REPOSITORY_NAME }}" "${{ secrets.AWS_REGISTRY_URL }}/${{ secrets.REPOSITORY_NAME }}:${{ github.sha }}"
+          echo "AWS_REGISTRY_URL: ${{ secrets.AWS_REGISTRY_URL }}"
+          echo "Generated Docker tag:  ${{ github.sha }}"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: af-south-1
+
+      - name: Push Docker image to Amazon ECR
+        run: |
+          aws ecr get-login-password --region af-south-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_REGISTRY_URL }}
+          docker push "${{ secrets.AWS_REGISTRY_URL }}/${{ secrets.REPOSITORY_NAME }}:${{ github.sha }}"
+
+      - name: Deploy to production server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST2 }}
+          username: ${{ secrets.EC2_USER2 }}
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY2 }}
+          envs: |
+            TAG=${{ github.sha }}
+            AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            AWS_REGION=af-south-1
+          script: |
+            echo "AWS CLI version: $(aws --version)"
+            echo "Docker version: $(docker --version)"
+            echo "Stop the current running container if exist..."
+            docker stop kazy_internal_api || true
+            echo "Remove the previous container..."
+            docker rm kazy_internal_api || true
+            export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+            export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+            export AWS_REGION=${AWS_REGION}
+            echo "AWS credentials set. Logging in to ECR...."
+            aws ecr get-login-password --region af-south-1 | docker login --username AWS --password-stdin 817722091681.dkr.ecr.af-south-1.amazonaws.com
+            echo "Docker login successful..."
+            echo "Pulling image from ECR..."
+            echo "Docker pull command: docker pull \"${{ secrets.AWS_REGISTRY_URL }}/${{ secrets.REPOSITORY_NAME }}:${{ github.sha }}\""
+            echo "Docker pull completed..."
+            echo "Running the container..."
+            docker run -d \
+            --name kazy_internal_api \
+            --env-file  ~/.dotenv/.dev_env \
+            -p ${{ secrets.EXPOSED_PORT2 }}:${{ secrets.APPLICATION_PORT2 }} "${{ secrets.AWS_REGISTRY_URL }}/${{ secrets.REPOSITORY_NAME }}:${{ github.sha }}"
+
+  deploy_development:
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11' 
+
+      - name: Build Spring Boot application
+        run: ./mvnw clean package -DskipTests=true
+
+      - name: Build Docker image and set Docker tag with TAG
+        run: |
+          echo "Generated Docker tag: ${{ github.sha }}"
+          docker build -t "${{ secrets.REPOSITORY_NAME }}" .
+          docker tag "${{ secrets.REPOSITORY_NAME }}" "${{ secrets.AWS_REGISTRY_URL }}/${{ secrets.REPOSITORY_NAME }}:${{ github.sha }}"
+          echo "AWS_REGISTRY_URL: ${{ secrets.AWS_REGISTRY_URL }}"
+          echo "Generated Docker tag:  ${{ github.sha }}"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: af-south-1
+
+      - name: Push Docker image to Amazon ECR
+        run: |
+          aws ecr get-login-password --region af-south-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_REGISTRY_URL }}
+          docker push "${{ secrets.AWS_REGISTRY_URL }}/${{ secrets.REPOSITORY_NAME }}:${{ github.sha }}"
+
+      - name: Deploy to development server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          envs: |
+            TAG=${{ github.sha }}
+            AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            AWS_REGION=af-south-1
+          script: |
+            echo "AWS CLI version: $(aws --version)"
+            echo "Docker version: $(docker --version)"
+            echo "Stop the current running container if exist..."
+            docker stop kazy_internal_api || true
+            echo "Remove the previous container..."
+            docker rm kazy_internal_api || true
+            export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+            export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+            export AWS_REGION=${AWS_REGION}
+            echo "AWS credentials set. Logging in to ECR...."
+            aws ecr get-login-password --region af-south-1 | docker login --username AWS --password-stdin 817722091681.dkr.ecr.af-south-1.amazonaws.com
+            echo "Docker login successful..."
+            echo "Pulling image from ECR..."
+            echo "Docker pull command: docker pull \"${{ secrets.AWS_REGISTRY_URL }}/${{ secrets.REPOSITORY_NAME }}:${{ github.sha }}\""
+            echo "Docker pull completed..."
+            echo "Running the container..."
+            docker run -d \
+            --name kazy_internal_api \
+            --env-file  ~/.dotenv/.dev_env \
+            -p ${{ secrets.EXPOSED_PORT }}:${{ secrets.APPLICATION_PORT }} "${{ secrets.AWS_REGISTRY_URL }}/${{ secrets.REPOSITORY_NAME }}:${{ github.sha }}"
