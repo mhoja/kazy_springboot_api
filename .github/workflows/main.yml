@@ -37,11 +37,11 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: af-south-1
+          aws-region:  us-east-1
 
       - name: Push Docker image to Amazon ECR
         run: |
-          aws ecr get-login-password --region af-south-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_REGISTRY_URL }}
+          aws ecr get-login-password --region  us-east-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_REGISTRY_URL }}
           docker push "${{ secrets.AWS_REGISTRY_URL }}/${{ secrets.REPOSITORY_NAME }}:${{ github.sha }}"
 
       - name: Deploy to production server
@@ -54,7 +54,7 @@ jobs:
             TAG=${{ github.sha }}
             AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
             AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            AWS_REGION=af-south-1
+            AWS_REGION= us-east-1
           script: |
             echo "AWS CLI version: $(aws --version)"
             echo "Docker version: $(docker --version)"
@@ -66,7 +66,7 @@ jobs:
             export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
             export AWS_REGION=${AWS_REGION}
             echo "AWS credentials set. Logging in to ECR...."
-            aws ecr get-login-password --region af-south-1 | docker login --username AWS --password-stdin 817722091681.dkr.ecr.af-south-1.amazonaws.com
+            aws ecr get-login-password --region  us-east-1 | docker login --username AWS --password-stdin 817722091681.dkr.ecr. us-east-1.amazonaws.com
             echo "Docker login successful..."
             echo "Pulling image from ECR..."
             echo "Docker pull command: docker pull \"${{ secrets.AWS_REGISTRY_URL }}/${{ secrets.REPOSITORY_NAME }}:${{ github.sha }}\""
@@ -75,7 +75,7 @@ jobs:
             docker run -d \
             --name kazy_internal_api \
             --env-file  ~/.dotenv/.dev_env \
-            -p ${{ secrets.EXPOSED_PORT2 }}:${{ secrets.APPLICATION_PORT2 }} "${{ secrets.AWS_REGISTRY_URL }}/${{ secrets.REPOSITORY_NAME }}:${{ github.sha }}"
+            -p ${{ secrets.EXPOSED_PORT }}:${{ secrets.APPLICATION_PORT }} "${{ secrets.AWS_REGISTRY_URL }}/${{ secrets.REPOSITORY_NAME }}:${{ github.sha }}"
 
   deploy_development:
     if: github.ref == 'refs/heads/develop'
@@ -108,11 +108,11 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: af-south-1
+          aws-region:  us-east-1
 
       - name: Push Docker image to Amazon ECR
         run: |
-          aws ecr get-login-password --region af-south-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_REGISTRY_URL }}
+          aws ecr get-login-password --region  us-east-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_REGISTRY_URL }}
           docker push "${{ secrets.AWS_REGISTRY_URL }}/${{ secrets.REPOSITORY_NAME }}:${{ github.sha }}"
 
       - name: Deploy to development server
@@ -125,7 +125,7 @@ jobs:
             TAG=${{ github.sha }}
             AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
             AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            AWS_REGION=af-south-1
+            AWS_REGION= us-east-1
           script: |
             echo "AWS CLI version: $(aws --version)"
             echo "Docker version: $(docker --version)"
@@ -137,7 +137,7 @@ jobs:
             export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
             export AWS_REGION=${AWS_REGION}
             echo "AWS credentials set. Logging in to ECR...."
-            aws ecr get-login-password --region af-south-1 | docker login --username AWS --password-stdin 817722091681.dkr.ecr.af-south-1.amazonaws.com
+            aws ecr get-login-password --region  us-east-1 | docker login --username AWS --password-stdin 817722091681.dkr.ecr. us-east-1.amazonaws.com
             echo "Docker login successful..."
             echo "Pulling image from ECR..."
             echo "Docker pull command: docker pull \"${{ secrets.AWS_REGISTRY_URL }}/${{ secrets.REPOSITORY_NAME }}:${{ github.sha }}\""
