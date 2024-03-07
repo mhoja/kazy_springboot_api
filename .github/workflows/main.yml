@@ -24,7 +24,7 @@ jobs:
       - name: Build Spring Boot application
         run: mvn clean package -DskipTests=true
 
-      - name: Build Docker image and set Docker tag with TAG
+      - name: Build Docker image and set Docker tag with TAG.
         run: |
           echo "Generated Docker tag: ${{ github.sha }}"
           docker build -t "${{ secrets.REPOSITORY_NAME }}" .
