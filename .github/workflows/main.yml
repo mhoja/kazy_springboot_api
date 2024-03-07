@@ -41,11 +41,11 @@ jobs:
 
       - name: Push Docker image to Amazon ECR..
         run: |
-          aws ecr get-login-password --region  us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/b8j8x7p9/kazy-platform-ci-cd-docker-images
+          aws ecr get-login-password --region  us-east-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_REGISTRY_URL }}
           echo "LOGED IN SUCCESSFULLY.............."
           docker push "${{ secrets.AWS_REGISTRY_URL }}/${{ secrets.REPOSITORY_NAME }}:${{ github.sha }}"
 
-      - name: Deploy to production server
+      - name: Deploy to production server.
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST2 }}
