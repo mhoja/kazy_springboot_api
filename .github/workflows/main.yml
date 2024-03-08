@@ -43,7 +43,7 @@ jobs:
         run: |
           aws ecr get-login-password --region  eu-north-1 | docker login --username AWS --password-stdin 058264129519.dkr.ecr.eu-north-1.amazonaws.com/kazy-ci-cd-docker-images-repo
           echo "LOGED IN SUCCESSFULLY...."
-          docker push "${{ secrets.AWS_REGISTRY_URL }}/${{ secrets.REPOSITORY_NAME }}:${{ github.sha }}"
+          docker push 058264129519.dkr.ecr.eu-north-1.amazonaws.com/kazy-ci-cd-docker-images-repo/${{ secrets.REPOSITORY_NAME }}:${{ github.sha }}"
 
       - name: Deploy to production server.
         uses: appleboy/ssh-action@master
