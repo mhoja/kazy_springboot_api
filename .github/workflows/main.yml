@@ -45,7 +45,7 @@ jobs:
           echo "LOGED IN SUCCESSFULLY......."
           docker push "${{ secrets.AWS_REGISTRY_URL }}/${{ secrets.REPOSITORY_NAME }}:${{ github.sha }}"
 
-      - name: Deploy to production server.
+      - name: Deploy to production server..
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST2 }}
