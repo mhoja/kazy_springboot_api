@@ -142,8 +142,9 @@ jobs:
             echo "Docker login successful..."
             echo "Pulling image from ECR..."
             echo "Docker pull command: docker pull \"${{ secrets.AWS_REGISTRY_URL }}/${{ secrets.REPOSITORY_NAME }}:${{ github.sha }}\""
-            echo "Docker pull completed..."
-            echo "Running the container..."
+            echo "Stoping current container...."
+            docker stop kazy_internal_api
+            echo "Running new container..."
             docker run -d \
             --name kazy_internal_api \
             --env-file  ~/.dotenv/.dev_env \
