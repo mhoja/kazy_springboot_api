@@ -148,3 +148,14 @@ jobs:
             --name kazy_internal_api \
             --env-file  ~/.dotenv/.dev_env \
             -p ${{ secrets.EXPOSED_PORT }}:${{ secrets.APPLICATION_PORT }} "${{ secrets.AWS_REGISTRY_URL }}/${{ secrets.REPOSITORY_NAME }}:${{ github.sha }}"
+
+        # Send Slack notification after successful deployment
+      - name: Send Slack notification
+        uses: Ilshidur/action-slack@master
+        with:
+          status: ${{ job.status }}
+          author_name: GitHub Actions
+          title: Production Deployment Successful
+          fields: Repository=$GITHUB_REPOSITORY, Commit=$GITHUB_SHA
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
