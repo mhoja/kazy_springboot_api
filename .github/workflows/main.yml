@@ -59,7 +59,7 @@ jobs:
           script: |
             echo "AWS CLI version: $(aws --version)"
             echo "Docker version: $(docker --version)"
-            echo "Stop the current running container if exist..."
+            echo "Stop the current running container if exist...."
             docker stop kazy_internal_api || true
             echo "Remove the previous container..."
             docker rm kazy_internal_api || true
