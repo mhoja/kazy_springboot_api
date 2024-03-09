@@ -137,6 +137,8 @@ jobs:
             export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
             export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
             export AWS_REGION=${AWS_REGION}
+            echo "AWS credentials set. Verifying AWS CLI configuration..."
+            aws configure list
             echo "AWS credentials set. Logging in to ECR..."
             aws ecr get-login-password --region  eu-north-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_REGISTRY_URL }}
             echo "Docker login successful..."
@@ -149,13 +151,4 @@ jobs:
             --env-file  ~/.dotenv/.dev_env \
             -p ${{ secrets.EXPOSED_PORT }}:${{ secrets.APPLICATION_PORT }} "${{ secrets.AWS_REGISTRY_URL }}/${{ secrets.REPOSITORY_NAME }}:${{ github.sha }}"
 
-        # Send Slack notification after successful deployment
-      - name: Send Slack notification
-        uses: Ilshidur/action-slack@master
-        with:
-          status: ${{ job.status }}
-          author_name: GitHub Actions
-          title: Production Deployment Successful
-          fields: Repository=$GITHUB_REPOSITORY, Commit=$GITHUB_SHA
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      
