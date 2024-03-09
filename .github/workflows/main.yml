@@ -42,7 +42,7 @@ jobs:
       - name: Push Docker image to Amazon ECR.
         run: |
           aws ecr get-login-password --region  eu-north-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_REGISTRY_URL }}
-          echo "LOGED IN SUCCESSFULLY......."
+          
           docker push "${{ secrets.AWS_REGISTRY_URL }}/${{ secrets.REPOSITORY_NAME }}:${{ github.sha }}"
 
       - name: Deploy to production server..
@@ -138,7 +138,7 @@ jobs:
             export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
             export AWS_REGION=${AWS_REGION}
             echo "AWS credentials set. Logging in to ECR...."
-            aws ecr get-login-password --region  eu-north-1 | docker login --username AWS --password-stdin 817722091681.dkr.ecr. eu-north-1.amazonaws.com
+            aws ecr get-login-password --region  eu-north-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_REGISTRY_URL }}
             echo "Docker login successful..."
             echo "Pulling image from ECR..."
             echo "Docker pull command: docker pull \"${{ secrets.AWS_REGISTRY_URL }}/${{ secrets.REPOSITORY_NAME }}:${{ github.sha }}\""
